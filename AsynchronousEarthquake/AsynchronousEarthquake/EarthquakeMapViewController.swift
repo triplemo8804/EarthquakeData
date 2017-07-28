@@ -1,11 +1,13 @@
-//: Playground - noun: a place where people can play
+//
+//  EarthquakeMapViewController.swift
+//  AsynchronousEarthquake
+//
+//  Created by Moses Monroe on 7/28/17.
+//  Copyright © 2017 Moses Monroe. All rights reserved.
+//
 
 import UIKit
-import CoreLocation
 import MapKit
-import PlaygroundSupport
-
-
 
 struct Earthquake {
     let magnitude: Float
@@ -26,18 +28,25 @@ class Annotation: NSObject, MKAnnotation {
     }
 }
 
-class EarthquakeMapper: NSObject, MKMapViewDelegate {
-    
-    lazy var mapView: MKMapView = {
-        let mapView = MKMapView(frame: CGRect(x: 0, y: 0, width: 400, height: 400))
-        mapView.delegate = self
-        return mapView
-    }()
+
+class EarthquakeMapViewController: UIViewController, MKMapViewDelegate {
+
+    @IBOutlet var mapView: MKMapView!
     
     var earthquakes = [Earthquake]()
-    
-    static let shared = EarthquakeMapper()
 
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        mapView.layoutIfNeeded()
+        mapView.delegate = self
+        let fakeAnnotation = Annotation(coordinate: CLLocationCoordinate2D(latitude: CLLocationDegrees(47.5650), longitude: CLLocationDegrees(122.6270)), title: "asdf", subtitle: "asdfasf'")
+        mapView.addAnnotation(fakeAnnotation)
+        
+        fetchEarthquakes()
+    }
+    
+    
     // MARK: -
     func fetchEarthquakes() {
         // Logic
@@ -71,17 +80,17 @@ class EarthquakeMapper: NSObject, MKMapViewDelegate {
                         let date = Date(timeIntervalSince1970: epochTime)
                         let coordinates = CLLocationCoordinate2D(latitude: geoLocation.first!, longitude: geoLocation.last!)
                         
-//                        let earthquake = Earthquake(magnitude: magnitude, location: location, date: date, coordinates: coordinates)
+                        //                        let earthquake = Earthquake(magnitude: magnitude, location: location, date: date, coordinates: coordinates)
                         
                         print(location,"with a magnitude of",magnitude)
                         let annotation = Annotation(coordinate: coordinates, title: "test", subtitle: "asdf")
                         annotations.append(annotation)
                         
                     }
-
-                    DispatchQueue.main.async {
-                        self.mapView.addAnnotations(annotations)
-                    }
+                    
+//                    DispatchQueue.main.async {
+//                        self.mapView.addAnnotations(annotations)
+//                    }
                     
                 } catch {
                     print(error)
@@ -93,6 +102,8 @@ class EarthquakeMapper: NSObject, MKMapViewDelegate {
         task.resume()
     }
     
+    
+    // MARK: -
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         let view = mapView.dequeueReusableAnnotationView(withIdentifier: "test")
         view?.backgroundColor = .red
@@ -103,11 +114,5 @@ class EarthquakeMapper: NSObject, MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, regionWillChangeAnimated animated: Bool) {
         print("asdfasdf")
     }
+    
 }
-
-EarthquakeMapper.shared.fetchEarthquakes()
-
-
-URLCache.shared = URLCache(memoryCapacity: 0, diskCapacity: 0, diskPath: nil)
-PlaygroundPage.current.needsIndefiniteExecution = true
-PlaygroundPage.current.liveView = EarthquakeMapper.shared.mapView
